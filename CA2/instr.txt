@@ -1,0 +1,45 @@
+Ali Mehrani - 810198542
+
+convert Alice(netsecs1403) cer file to pem
+openssl x509 -in netsecs1403.cer -out netsecs1403.pem
+
+Extract Alice(netsecs1403) public key in a pem file
+openssl x509 -pubkey -noout -in netsecs1403.pem > netsecs1403_pubkey.pem
+
+Extracting IV from key1.hex in to a new file
+cut -c 1-32 key1.hex > key1_IV.hex
+
+Extracting private key from key1.hex in to a new file
+cut -c 33-80 key1.hex > key1_prkey.hex
+
+decrypting message1.enc using IV and private key files
+openssl aes-192-cbc -d -in message1.enc -out message2.txt -K "$(cat key1_prkey.hex)" -iv "$(cat key1_IV.hex)" -p -nosalt
+
+generate the symmetric key and store it in key2.hex
+openssl rand -hex 16 > key2.hex
+
+Extracting IV from key2.hex and storing it in key2_IV.hex
+head -c 16 key2.hex > key2_IV.hex
+
+Extracting decryption key from key2.hex and storing it in key2_dkey.hex
+tail -c 17 key2.hex > key2_dkey.hex
+
+generating key2.hex.enc by enctypting key2.hex using alice public key(netsec1403_pubkey) as the public key
+openssl rsautl -encrypt -inkey netsecs1403_pubkey.pem -pubin -in key2.hex -out key2.hex.enc
+
+encrypting and generating message2.enc with DES CFB algorithm using key2.hex as symmetric key (can use the seperately created IV and key files as well) 
+openssl enc -des-cfb -in message2.txt -out message2.enc -K $(cat key2.hex | tail -c 17) -iv $(cat key2.hex | head -c 16)
+
+extracting bob(outlook email address) pair key
+openssl pkcs12 -in PKCS12_Credential_alimehrani001@outlook.com.pfx -nocerts -nodes -out bob_outlook_pair_key.key
+
+Extract private key from bob pair key
+openssl rsa -in bob_outlook_pair_key.key -out bob_outlook_private_key.pem
+
+sign message2.txt with sha512 and bob private key
+openssl dgst -sha512 -sign bob_outlook_private_key.pem -out message2.sign.sha512 message2.txt
+
+Extract bob(outlook) public key
+openssl rsa -in bob_outlook_pair_key.key -pubout -out bob_pub.pem
+
+
