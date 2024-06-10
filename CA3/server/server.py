@@ -6,7 +6,7 @@ from fastapi import Request
 import requests
 from urllib.parse import parse_qs
 
-USER_DATA_RETRIEVAL_URL = "https://api.github.com/user/"
+USER_DATA_RETRIEVAL_URL = "https://api.github.com/user"
 ACCESS_TOKEN_RETRIEVAL_URL = "https://github.com/login/oauth/access_token/"
 CLIENT_SECRET = "004642d5183c6d26499f3c09ae0e92009106edac"
 CLIENT_ID = "Ov23liCSIx7NQkGmr8uy"
@@ -28,25 +28,47 @@ def get_token_from_encoded_url(response):
 
 
 def get_auth_token(github_code):
-    token_request_payload = {
-        'code': github_code,
-        'client_id': CLIENT_ID,
-        'client_secret': CLIENT_SECRET
+    try:
+        token_request_payload = {
+            'code': github_code,
+            'client_id': CLIENT_ID,
+            'client_secret': CLIENT_SECRET
+        }
+
+        auth_response = requests.post(
+            ACCESS_TOKEN_RETRIEVAL_URL, data=token_request_payload)
+
+        auth_response.raise_for_status()
+        access_token = get_token_from_encoded_url(auth_response)
+        print(f'access_token: {access_token}')
+
+        return access_token
+
+    except Exception as e:
+        raise Exception(f'Error: Failed to retrieve access token: {e}')
+
+
+def get_user_data_with_token(token):
+    auth_header = {
+        'Authorization': f'Bearer {token}'
     }
+    data_response = requests.get(USER_DATA_RETRIEVAL_URL, headers=auth_header)
+    data_response.raise_for_status()
 
-    auth_response = requests.post(
-        ACCESS_TOKEN_RETRIEVAL_URL, data=token_request_payload)
-
-    auth_response.raise_for_status()
-
-    print(f'access_token: {get_token_from_encoded_url(auth_response)}')
+    return data_response.json()
 
 
 @app.get("/oauth/redirect")
 def oauth_redirect(code: str):
     print(f'Github code is: {code}')
-    get_auth_token(code)
-    return f'Github code is: {code}'
+    # return f'Github code is: {code}'
+    try:
+        access_token = get_auth_token(code)
+        user_data = get_user_data_with_token(access_token)
+        return user_data
+
+    except Exception as e:
+        return f'Server Error: {e}', 500
 
 
 @app.get("/", response_class=HTMLResponse)
