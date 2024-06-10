@@ -59,13 +59,17 @@ def get_user_data_with_token(token):
 
 
 @app.get("/oauth/redirect")
-def oauth_redirect(code: str):
+# add request as parameter to be able to use context for template engine
+def oauth_redirect(request: Request, code: str):
     print(f'Github code is: {code}')
     # return f'Github code is: {code}'
     try:
         access_token = get_auth_token(code)
         user_data = get_user_data_with_token(access_token)
-        return user_data
+        # return user_data  # uncomment if you want to display user data in raw json
+
+        # uncomment if you want to see data in a html file
+        return templates.TemplateResponse("user_data.html", {"request": request, "user_data": user_data})
 
     except Exception as e:
         return f'Server Error: {e}', 500

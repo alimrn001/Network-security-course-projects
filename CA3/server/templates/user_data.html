@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <style>
+      * {
+        box-sizing: border-box !important;
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        background-color: #22272e !important; /*same as the github background color :)*/
+      }
+      .d-flex {
+        display: flex;
+      }
+      .main-container {
+        margin-top: 5rem;
+        margin-left: 3rem;
+      }
+      .profile_avatar {
+        border-radius: 50%;
+      }
+      .profile-section-1 {
+        padding: 0rem 10rem 5rem 10rem;
+        color: white;
+      }
+      .profile-section-2 {
+        color: white;
+      }
+      .mt-1 {
+        margin-top: 1rem;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="main-container d-flex">
+      <div class="profile-section-1">
+        <img
+          class="profile_avatar"
+          width="200px"
+          src="{{ user_data.avatar_url }}"
+        />
+        <h3 class="mt-1">Username: {{ user_data.login }}</h3>
+        <h3 class="mt-1">Name: {{ user_data.name }}</h3>
+        <a href="{{ user_data.html_url }}" class="mt-1">Visit Profile</a>
+      </div>
+      <div class="profile-section-2">
+        <p class="mt-1">{{ user_data.bio }}</p>
+        <p class="mt-1">Company: {{user_data.company}}</p>
+        <p class="mt-1">Location: {{user_data.location}}</p>
+      </div>
+    </div>
+  </body>
+</html>
